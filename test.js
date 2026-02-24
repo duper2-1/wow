@@ -13,9 +13,13 @@ function downloadScript(url, outputPath) {
     try {
         const connection = new URL(url).openConnection();
         connection.setRequestMethod("GET");
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
+        
         if (connection.getResponseCode() !== HttpURLConnection.HTTP_OK) {
             throw new Error("Failed to download file: HTTP " + connection.getResponseCode());
         }
+        
         const reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         const writer = new FileWriter(new File(outputPath));
         let line;
